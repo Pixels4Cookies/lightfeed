@@ -70,7 +70,28 @@ The app still works if you skip this.
 
 For most personal/open-source usage, logo.dev's free plan is usually more than enough.
 
-### 5. Start the app
+### 5. Database path (Recommended)
+
+By default, LightFeed stores SQLite outside the repo at:
+
+`~/.lightfeed/data/lightfeed.sqlite`
+
+You can override this:
+
+```bash
+LIGHTFEED_DB_PATH=/absolute/path/to/lightfeed.sqlite
+```
+
+or:
+
+```bash
+LIGHTFEED_DATA_DIR=/absolute/path/to/lightfeed-data
+```
+
+`LIGHTFEED_DB_PATH` can also point to an existing directory; in that case LightFeed uses
+`<that-directory>/lightfeed.sqlite`.
+
+### 6. Start the app
 
 ```bash
 npm run dev
@@ -78,11 +99,38 @@ npm run dev
 
 Open: `http://localhost:3000`
 
-### 6. What happens on first run
+### 7. What happens on first run
 
-- The app creates `db/lightfeed.sqlite` automatically.
+- The app creates `~/.lightfeed/data/lightfeed.sqlite` automatically (unless overridden).
+- If an old `db/lightfeed.sqlite` exists, LightFeed automatically copies it to the new path.
 - Schema and lightweight seed data are initialized automatically.
 - You can immediately browse/edit feeds from the UI.
+
+## Environment variables
+
+This is the complete list of environment variables currently used by LightFeed.
+
+1. `NEXT_PUBLIC_LOGO_DEV_TOKEN` (optional)
+   Used by article cards to fetch publisher logos from logo.dev.
+2. `LIGHTFEED_DB_PATH` (optional)
+   Absolute or relative SQLite file path. If it points to an existing directory, LightFeed uses `<directory>/lightfeed.sqlite`.
+3. `LIGHTFEED_DATA_DIR` (optional)
+   Directory where LightFeed stores SQLite as `lightfeed.sqlite`. Used only when `LIGHTFEED_DB_PATH` is not set.
+
+Resolution order for database path:
+
+1. `LIGHTFEED_DB_PATH`
+2. `LIGHTFEED_DATA_DIR/lightfeed.sqlite`
+3. `~/.lightfeed/data/lightfeed.sqlite` (default)
+
+Example `.env.local`:
+
+```bash
+NEXT_PUBLIC_LOGO_DEV_TOKEN=your_token_here
+LIGHTFEED_DATA_DIR=/absolute/path/to/lightfeed-data
+# Or use LIGHTFEED_DB_PATH instead of LIGHTFEED_DATA_DIR:
+# LIGHTFEED_DB_PATH=/absolute/path/to/lightfeed.sqlite
+```
 
 ## Common commands
 
@@ -96,7 +144,7 @@ npm run lint             # run eslint
 
 ## Deployment guides
 
-LightFeed currently stores feed configuration and bookmarks in local SQLite (`db/lightfeed.sqlite`).
+LightFeed currently stores feed configuration and bookmarks in local SQLite (`~/.lightfeed/data/lightfeed.sqlite` by default).
 
 - Works out of the box on hosts with persistent disk (VMs/containers with volumes).
 - Does not work as-is on stateless serverless platforms unless you migrate from SQLite to Postgres.
@@ -127,13 +175,14 @@ CMD ["npm", "run", "start"]
 docker build -t lightfeed:latest .
 ```
 
-3. Run with a persistent volume mounted to `/app/db`:
+3. Run with a persistent volume mounted to `/app/data`:
 
 ```bash
 docker run -d \
   --name lightfeed \
   -p 3000:3000 \
-  -v lightfeed_db:/app/db \
+  -v lightfeed_db:/app/data \
+  -e LIGHTFEED_DATA_DIR=/app/data \
   -e NEXT_PUBLIC_LOGO_DEV_TOKEN=your_token_here \
   lightfeed:latest
 ```
@@ -152,7 +201,7 @@ npm run build
 npm run start
 ```
 
-If you keep SQLite, make sure `db/` is on persistent storage.
+If you keep SQLite, make sure your DB path is on persistent storage.
 
 ## Product model
 
@@ -189,11 +238,11 @@ A feed/page contains:
 
 ## Data storage
 
-SQLite file: `db/lightfeed.sqlite`
+SQLite file (default): `~/.lightfeed/data/lightfeed.sqlite`
 
 Primary tables:
 
-- `pages(id, name, is_homepage, created_at)`
+- `pages(id, name, is_homepage, sort_order, created_at)`
 - `feeds(id, url, title, created_at)`
 - `page_feeds(page_id, feed_id)`
 - `saved_articles(...)`
@@ -228,7 +277,7 @@ The app stores configuration and saved metadata. RSS article content is fetched 
   - check per-feed warnings shown in the UI
 - Database reset for local development:
   - stop server
-  - delete `db/lightfeed.sqlite`
+  - delete `~/.lightfeed/data/lightfeed.sqlite` (or your custom DB path)
   - restart with `npm run dev`
 
 ## Security note
