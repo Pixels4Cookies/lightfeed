@@ -8,5 +8,6 @@ export {
   listPageFeedMix,
   listPages,
   listPagesWithStats,
+  reorderPages,
   updatePage,
 } from "@/lib/lightfeed-pages";

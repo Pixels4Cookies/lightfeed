@@ -80,6 +80,7 @@ function ensureSchema(db) {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       is_homepage INTEGER NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL
     );
 
@@ -98,6 +99,7 @@ function ensureSchema(db) {
 
     CREATE INDEX IF NOT EXISTS idx_page_feeds_feed_id ON page_feeds(feed_id);
     CREATE INDEX IF NOT EXISTS idx_pages_homepage ON pages(is_homepage);
+    CREATE INDEX IF NOT EXISTS idx_pages_sort_order ON pages(sort_order);
   `);
 }
 
@@ -111,6 +113,41 @@ function cleanupOrphanFeeds(db) {
     )
     `,
   ).run();
+}
+
+function normalizePageSortOrder(db) {
+  const pageRows = db
+    .prepare(
+      `
+      SELECT id, COALESCE(sort_order, 0) AS sort_order, created_at
+      FROM pages
+      ORDER BY COALESCE(sort_order, 0) ASC, created_at ASC, id ASC
+      `,
+    )
+    .all();
+
+  if (pageRows.length === 0) {
+    return;
+  }
+
+  const updateSortOrder = db.prepare(`
+    UPDATE pages
+    SET sort_order = @sort_order
+    WHERE id = @id
+  `);
+
+  pageRows.forEach((page, index) => {
+    const expectedOrder = index + 1;
+
+    if (Number(page.sort_order) === expectedOrder) {
+      return;
+    }
+
+    updateSortOrder.run({
+      id: page.id,
+      sort_order: expectedOrder,
+    });
+  });
 }
 
 function hasLegacyPredefinedPages(db) {
@@ -131,18 +168,20 @@ function migrateLegacyPredefinedPages(db) {
 
   runWriteTransaction(db, () => {
     const upsertPage = db.prepare(`
-      INSERT INTO pages (id, name, is_homepage, created_at)
-      VALUES (@id, @name, @is_homepage, @created_at)
+      INSERT INTO pages (id, name, is_homepage, sort_order, created_at)
+      VALUES (@id, @name, @is_homepage, @sort_order, @created_at)
       ON CONFLICT(id) DO UPDATE SET
         name = excluded.name,
-        is_homepage = excluded.is_homepage
+        is_homepage = excluded.is_homepage,
+        sort_order = excluded.sort_order
     `);
 
-    for (const page of seedPages) {
+    for (const [index, page] of seedPages.entries()) {
       upsertPage.run({
         id: page.id,
         name: page.name,
         is_homepage: page.isHomepage ? 1 : 0,
+        sort_order: index + 1,
         created_at: page.createdAt,
       });
     }
@@ -249,6 +288,8 @@ function migrateLegacyFeeds(db) {
 function migrateDatabase(db) {
   const pageFeedColumns = db.prepare("PRAGMA table_info(page_feeds)").all();
   const hasWeightColumn = pageFeedColumns.some((column) => column.name === "weight");
+  const pageColumns = db.prepare("PRAGMA table_info(pages)").all();
+  const hasSortOrderColumn = pageColumns.some((column) => column.name === "sort_order");
 
   if (hasWeightColumn) {
     runWriteTransaction(db, () => {
@@ -273,6 +314,17 @@ function migrateDatabase(db) {
     });
   }
 
+  if (!hasSortOrderColumn) {
+    runWriteTransaction(db, () => {
+      db.exec("ALTER TABLE pages ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;");
+      normalizePageSortOrder(db);
+    });
+  } else {
+    runWriteTransaction(db, () => {
+      normalizePageSortOrder(db);
+    });
+  }
+
   migrateLegacyPredefinedPages(db);
   runWriteTransaction(db, () => {
     migrateLegacyFeeds(db);
@@ -291,15 +343,16 @@ function seedDatabase(db) {
 
   runWriteTransaction(db, () => {
     const insertPage = db.prepare(`
-      INSERT INTO pages (id, name, is_homepage, created_at)
-      VALUES (@id, @name, @is_homepage, @created_at)
+      INSERT INTO pages (id, name, is_homepage, sort_order, created_at)
+      VALUES (@id, @name, @is_homepage, @sort_order, @created_at)
     `);
 
-    for (const page of seedPages) {
+    for (const [index, page] of seedPages.entries()) {
       insertPage.run({
         id: page.id,
         name: page.name,
         is_homepage: page.isHomepage ? 1 : 0,
+        sort_order: index + 1,
         created_at: page.createdAt,
       });
     }

@@ -2,6 +2,7 @@ CREATE TABLE pages (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   is_homepage BOOLEAN DEFAULT FALSE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -37,4 +38,5 @@ CREATE TABLE saved_articles (
 
 CREATE INDEX idx_page_feeds_feed_id ON page_feeds (feed_id);
 CREATE INDEX idx_pages_homepage ON pages (is_homepage);
+CREATE INDEX idx_pages_sort_order ON pages (sort_order);
 CREATE INDEX idx_saved_articles_saved_at ON saved_articles (saved_at DESC);

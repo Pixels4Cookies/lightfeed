@@ -48,6 +48,7 @@ function mapPageRow(row) {
     id: row.id,
     name: row.name,
     isHomepage: Boolean(row.is_homepage),
+    sortOrder: Number(row.sort_order ?? 0),
     createdAt: row.created_at,
   };
 }
@@ -152,9 +153,9 @@ export function listPages() {
   const rows = db
     .prepare(
       `
-      SELECT id, name, is_homepage, created_at
+      SELECT id, name, is_homepage, sort_order, created_at
       FROM pages
-      ORDER BY created_at ASC
+      ORDER BY sort_order ASC, created_at ASC, id ASC
       `,
     )
     .all();
@@ -171,12 +172,13 @@ export function listPagesWithStats() {
         p.id,
         p.name,
         p.is_homepage,
+        p.sort_order,
         p.created_at,
         COUNT(pf.feed_id) AS feed_count
       FROM pages p
       LEFT JOIN page_feeds pf ON pf.page_id = p.id
       GROUP BY p.id
-      ORDER BY p.created_at ASC
+      ORDER BY p.sort_order ASC, p.created_at ASC, p.id ASC
       `,
     )
     .all();
@@ -195,7 +197,7 @@ export function getPageById(pageId) {
   const row = db
     .prepare(
       `
-      SELECT id, name, is_homepage, created_at
+      SELECT id, name, is_homepage, sort_order, created_at
       FROM pages
       WHERE id = ?
       LIMIT 1
@@ -211,9 +213,9 @@ export function getHomepagePage() {
   const row = db
     .prepare(
       `
-      SELECT id, name, is_homepage, created_at
+      SELECT id, name, is_homepage, sort_order, created_at
       FROM pages
-      ORDER BY is_homepage DESC, created_at ASC
+      ORDER BY is_homepage DESC, sort_order ASC, created_at ASC
       LIMIT 1
       `,
     )
@@ -268,6 +270,12 @@ export function createPage(payload) {
   const isHomepage = Boolean(payload?.isHomepage);
   const pageId = makePageId(db, payload?.id, name);
   const createdAt = new Date().toISOString();
+  const nextSortOrder =
+    Number(
+      db
+        .prepare("SELECT COALESCE(MAX(sort_order), 0) + 1 AS sort_order FROM pages")
+        .get()?.sort_order,
+    ) || 1;
 
   runWriteTransaction(db, () => {
     if (isHomepage) {
@@ -276,13 +284,14 @@ export function createPage(payload) {
 
     db.prepare(
       `
-      INSERT INTO pages (id, name, is_homepage, created_at)
-      VALUES (@id, @name, @is_homepage, @created_at)
+      INSERT INTO pages (id, name, is_homepage, sort_order, created_at)
+      VALUES (@id, @name, @is_homepage, @sort_order, @created_at)
       `,
     ).run({
       id: pageId,
       name,
       is_homepage: isHomepage ? 1 : 0,
+      sort_order: nextSortOrder,
       created_at: createdAt,
     });
 
@@ -293,6 +302,58 @@ export function createPage(payload) {
     page: getPageById(pageId),
     feedMix: listPageFeedMix(pageId),
   };
+}
+
+export function reorderPages(pageIds) {
+  const normalizedPageIds = Array.isArray(pageIds)
+    ? pageIds
+        .map((pageId) => String(pageId ?? "").trim())
+        .filter((pageId) => pageId.length > 0)
+    : [];
+
+  if (normalizedPageIds.length === 0) {
+    throw new Error("Feed order is required.");
+  }
+
+  const uniquePageIds = new Set(normalizedPageIds);
+  if (uniquePageIds.size !== normalizedPageIds.length) {
+    throw new Error("Feed order contains duplicate entries.");
+  }
+
+  const db = getLightfeedDatabase();
+  const existingPageRows = db.prepare("SELECT id FROM pages").all();
+
+  if (existingPageRows.length === 0) {
+    return [];
+  }
+
+  if (normalizedPageIds.length !== existingPageRows.length) {
+    throw new Error("Feed order must include all feeds.");
+  }
+
+  const existingPageIds = new Set(existingPageRows.map((page) => page.id));
+  for (const pageId of normalizedPageIds) {
+    if (!existingPageIds.has(pageId)) {
+      throw new Error(`Feed "${pageId}" was not found.`);
+    }
+  }
+
+  runWriteTransaction(db, () => {
+    const updateSortOrder = db.prepare(`
+      UPDATE pages
+      SET sort_order = @sort_order
+      WHERE id = @id
+    `);
+
+    normalizedPageIds.forEach((pageId, index) => {
+      updateSortOrder.run({
+        id: pageId,
+        sort_order: index + 1,
+      });
+    });
+  });
+
+  return listPages();
 }
 
 export function updatePage(pageId, payload) {

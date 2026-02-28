@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { normalizeRequestFeeds } from "@/lib/feed-request";
-import { createPage, listPages } from "@/lib/lightfeed-data";
+import { createPage, listPages, reorderPages } from "@/lib/lightfeed-data";
 
 const MAX_FEEDS_PER_REQUEST = 20;
 
@@ -51,6 +51,30 @@ export async function POST(request) {
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to create feed.";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
+
+export async function PATCH(request) {
+  let payload;
+
+  try {
+    payload = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request payload." }, { status: 400 });
+  }
+
+  try {
+    const reorderedPages = reorderPages(payload?.pageIds);
+
+    return NextResponse.json({
+      data: reorderedPages,
+      meta: {
+        source: "sqlite",
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to reorder feeds.";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
