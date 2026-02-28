@@ -1,0 +1,302 @@
+[
+  {
+    "category": "News",
+    "country": "United States",
+    "feedName": "NPR News",
+    "feedLink": "https://feeds.npr.org/1001/rss.xml"
+  },
+  {
+    "category": "News",
+    "country": "United States",
+    "feedName": "New York Times - Home Page",
+    "feedLink": "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+  },
+  {
+    "category": "News",
+    "country": "Global",
+    "feedName": "Associated Press - Top News",
+    "feedLink": "https://apnews.com/hub/ap-top-news?output=rss"
+  },
+  {
+    "category": "News",
+    "country": "United Kingdom",
+    "feedName": "BBC News - World",
+    "feedLink": "https://feeds.bbci.co.uk/news/world/rss.xml"
+  },
+  {
+    "category": "News",
+    "country": "United Kingdom",
+    "feedName": "The Guardian - World",
+    "feedLink": "https://www.theguardian.com/world/rss"
+  },
+  {
+    "category": "News",
+    "country": "Qatar",
+    "feedName": "Al Jazeera - All News",
+    "feedLink": "https://www.aljazeera.com/xml/rss/all.xml"
+  },
+  {
+    "category": "News",
+    "country": "Germany",
+    "feedName": "DW - Top Stories",
+    "feedLink": "https://rss.dw.com/rdf/rss-en-top"
+  },
+  {
+    "category": "News",
+    "country": "France",
+    "feedName": "France 24 - News",
+    "feedLink": "https://www.france24.com/en/rss"
+  },
+  {
+    "category": "News",
+    "country": "Canada",
+    "feedName": "CBC News - Top Stories",
+    "feedLink": "https://www.cbc.ca/webfeed/rss/rss-topstories"
+  },
+  {
+    "category": "News",
+    "country": "Australia",
+    "feedName": "ABC News Australia - Top Stories",
+    "feedLink": "https://www.abc.net.au/news/feed/51120/rss.xml"
+  },
+  {
+    "category": "Tech",
+    "country": "United States",
+    "feedName": "TechCrunch",
+    "feedLink": "https://techcrunch.com/feed/"
+  },
+  {
+    "category": "Tech",
+    "country": "United States",
+    "feedName": "Ars Technica",
+    "feedLink": "https://feeds.arstechnica.com/arstechnica/index"
+  },
+  {
+    "category": "Tech",
+    "country": "United States",
+    "feedName": "The Verge",
+    "feedLink": "https://www.theverge.com/rss/index.xml"
+  },
+  {
+    "category": "Tech",
+    "country": "United States",
+    "feedName": "Wired",
+    "feedLink": "https://www.wired.com/feed/rss"
+  },
+  {
+    "category": "Tech",
+    "country": "United States",
+    "feedName": "Engadget",
+    "feedLink": "https://www.engadget.com/rss.xml"
+  },
+  {
+    "category": "Tech",
+    "country": "United States",
+    "feedName": "MIT Technology Review",
+    "feedLink": "https://www.technologyreview.com/feed/"
+  },
+  {
+    "category": "Tech",
+    "country": "United States",
+    "feedName": "VentureBeat",
+    "feedLink": "https://venturebeat.com/feed/"
+  },
+  {
+    "category": "Tech",
+    "country": "United States",
+    "feedName": "ZDNET - News",
+    "feedLink": "https://www.zdnet.com/news/rss.xml"
+  },
+  {
+    "category": "Tech",
+    "country": "Global",
+    "feedName": "Hacker News - Front Page",
+    "feedLink": "https://hnrss.org/frontpage"
+  },
+  {
+    "category": "Tech",
+    "country": "United Kingdom",
+    "feedName": "The Register - Headlines",
+    "feedLink": "https://www.theregister.com/headlines.atom"
+  },
+  {
+    "category": "Finance",
+    "country": "United States",
+    "feedName": "CNBC - Top News",
+    "feedLink": "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+  },
+  {
+    "category": "Finance",
+    "country": "United Kingdom",
+    "feedName": "BBC News - Business",
+    "feedLink": "https://feeds.bbci.co.uk/news/business/rss.xml"
+  },
+  {
+    "category": "Finance",
+    "country": "United States",
+    "feedName": "Bloomberg - Markets News",
+    "feedLink": "https://feeds.bloomberg.com/markets/news.rss"
+  },
+  {
+    "category": "Finance",
+    "country": "United Kingdom",
+    "feedName": "Financial Times - World",
+    "feedLink": "https://www.ft.com/world?format=rss"
+  },
+  {
+    "category": "Finance",
+    "country": "United States",
+    "feedName": "MarketWatch - Top Stories",
+    "feedLink": "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+  },
+  {
+    "category": "Finance",
+    "country": "United States",
+    "feedName": "Yahoo Finance - Top News",
+    "feedLink": "https://finance.yahoo.com/news/rssindex"
+  },
+  {
+    "category": "Finance",
+    "country": "United States",
+    "feedName": "The Wall Street Journal - Markets",
+    "feedLink": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+  },
+  {
+    "category": "Finance",
+    "country": "United States",
+    "feedName": "CNN Business - Latest",
+    "feedLink": "https://rss.cnn.com/rss/money_latest.rss"
+  },
+  {
+    "category": "Finance",
+    "country": "United States",
+    "feedName": "Seeking Alpha - Market News",
+    "feedLink": "https://seekingalpha.com/feed.xml"
+  },
+  {
+    "category": "Finance",
+    "country": "Global",
+    "feedName": "CoinDesk - Latest",
+    "feedLink": "https://www.coindesk.com/arc/outboundfeeds/rss/"
+  },
+  {
+    "category": "Sport",
+    "country": "United States",
+    "feedName": "ESPN - Top Headlines",
+    "feedLink": "https://www.espn.com/espn/rss/news"
+  },
+  {
+    "category": "Sport",
+    "country": "United States",
+    "feedName": "ESPN - NFL News",
+    "feedLink": "https://www.espn.com/espn/rss/nfl/news"
+  },
+  {
+    "category": "Sport",
+    "country": "United States",
+    "feedName": "ESPN - NBA News",
+    "feedLink": "https://www.espn.com/espn/rss/nba/news"
+  },
+  {
+    "category": "Sport",
+    "country": "United Kingdom",
+    "feedName": "BBC Sport - Top Stories",
+    "feedLink": "https://feeds.bbci.co.uk/sport/rss.xml?edition=uk"
+  },
+  {
+    "category": "Sport",
+    "country": "United Kingdom",
+    "feedName": "BBC Sport - Football",
+    "feedLink": "https://feeds.bbci.co.uk/sport/football/rss.xml?edition=uk"
+  },
+  {
+    "category": "Sport",
+    "country": "United Kingdom",
+    "feedName": "The Guardian - Sport",
+    "feedLink": "https://www.theguardian.com/uk/sport/rss"
+  },
+  {
+    "category": "Sport",
+    "country": "United States",
+    "feedName": "Yahoo Sports - Top News",
+    "feedLink": "https://sports.yahoo.com/rss/"
+  },
+  {
+    "category": "Sport",
+    "country": "United States",
+    "feedName": "CBS Sports - Headlines",
+    "feedLink": "https://www.cbssports.com/rss/headlines/"
+  },
+  {
+    "category": "Sport",
+    "country": "United States",
+    "feedName": "ESPN - MLB News",
+    "feedLink": "https://www.espn.com/espn/rss/mlb/news"
+  },
+  {
+    "category": "Sport",
+    "country": "United Kingdom",
+    "feedName": "Sky Sports - News",
+    "feedLink": "https://www.skysports.com/rss/12040"
+  },
+  {
+    "category": "Media",
+    "country": "United States",
+    "feedName": "Variety",
+    "feedLink": "https://variety.com/feed/"
+  },
+  {
+    "category": "Media",
+    "country": "United States",
+    "feedName": "TheWrap",
+    "feedLink": "https://www.thewrap.com/feed/"
+  },
+  {
+    "category": "Media",
+    "country": "United States",
+    "feedName": "Deadline",
+    "feedLink": "https://deadline.com/feed/"
+  },
+  {
+    "category": "Media",
+    "country": "United States",
+    "feedName": "IndieWire",
+    "feedLink": "https://www.indiewire.com/feed/"
+  },
+  {
+    "category": "Media",
+    "country": "United States",
+    "feedName": "Billboard",
+    "feedLink": "https://www.billboard.com/feed/"
+  },
+  {
+    "category": "Media",
+    "country": "United States",
+    "feedName": "Rolling Stone",
+    "feedLink": "https://www.rollingstone.com/feed/"
+  },
+  {
+    "category": "Media",
+    "country": "United Kingdom",
+    "feedName": "BBC News - Entertainment & Arts",
+    "feedLink": "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml"
+  },
+  {
+    "category": "Media",
+    "country": "United Kingdom",
+    "feedName": "The Guardian - Culture",
+    "feedLink": "https://www.theguardian.com/uk/culture/rss"
+  },
+  {
+    "category": "Media",
+    "country": "United States",
+    "feedName": "IGN - All",
+    "feedLink": "https://feeds.ign.com/ign/all"
+  },
+  {
+    "category": "Media",
+    "country": "United States",
+    "feedName": "Polygon",
+    "feedLink": "https://www.polygon.com/rss/index.xml"
+  }
+]

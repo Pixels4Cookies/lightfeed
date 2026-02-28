@@ -1,36 +1,300 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# LightFeed
 
-## Getting Started
+LightFeed is a open source, self-hosted RSS reader focused on speed, low operational overhead, and user-controlled feed composition.
 
-First, run the development server:
+It lets you combine multiple RSS sources into custom feeds and keeps storage lightweight by saving configuration + bookmarks locally in SQLite.
+
+![LightFeed Screenshot](./public/images/the-feed.png)
+
+## Why this project exists
+
+- Fast, readable RSS experience without algorithmic timelines
+- Full control over feed sources
+- Local-first persistence with minimal moving parts
+- No tracking or telemetry
+
+## Features
+
+- Create multiple named feeds (example: `World News`, `Business`, `Sports`)
+- Blend RSS sources into one recency-sorted stream per feed
+- Mark one feed as your homepage/default stream
+- Save and remove bookmarked articles
+- Show per-feed fetch failures without hiding successful sources
+- Keep article fetching live (articles are not fully persisted)
+
+## Tech stack
+
+- Next.js App Router (`src/app`)
+- React
+- SQLite via built-in `node:sqlite`
+- Tailwind CSS v4
+
+## Install (Beginner Friendly)
+
+### 1. Install Node.js (required)
+
+Use **Node.js 22 or newer**. This project uses `node:sqlite`, which is only available in newer Node versions.
+
+Check your version:
+
+```bash
+node -v
+```
+
+If you need Node, install from [nodejs.org](https://nodejs.org/) (LTS recommended).
+
+### 2. Clone the project
+
+```bash
+git clone <your-repo-url>
+cd rss-news
+```
+
+### 3. Install dependencies
+
+```bash
+npm install
+```
+
+### 4. (Optional) Add `.env.local`
+
+LightFeed uses [logo.dev](https://logo.dev/) to fetch publisher logos for news sources in article cards.
+
+Add this token if you want more reliable logo rendering:
+
+```bash
+NEXT_PUBLIC_LOGO_DEV_TOKEN=your_token_here
+```
+
+The app still works if you skip this.
+
+For most personal/open-source usage, logo.dev's free plan is usually more than enough.
+
+### 5. Start the app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open: `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 6. What happens on first run
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- The app creates `db/lightfeed.sqlite` automatically.
+- Schema and lightweight seed data are initialized automatically.
+- You can immediately browse/edit feeds from the UI.
 
-## Learn More
+## Common commands
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev              # start local development server
+npm run build            # production build (webpack)
+npm run build:turbopack  # production build (turbopack)
+npm run start            # run production build
+npm run lint             # run eslint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment guides
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+LightFeed currently stores feed configuration and bookmarks in local SQLite (`db/lightfeed.sqlite`).
 
-## Deploy on Vercel
+- Works out of the box on hosts with persistent disk (VMs/containers with volumes).
+- Does not work as-is on stateless serverless platforms unless you migrate from SQLite to Postgres.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 1. Deploy with Docker (recommended for current codebase)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Use Docker when you want the app exactly as it is today, with persistent SQLite data.
+
+1. Create a `Dockerfile` in the project root:
+
+```dockerfile
+FROM node:22-alpine
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+EXPOSE 3000
+CMD ["npm", "run", "start"]
+```
+
+2. Build the image:
+
+```bash
+docker build -t lightfeed:latest .
+```
+
+3. Run with a persistent volume mounted to `/app/db`:
+
+```bash
+docker run -d \
+  --name lightfeed \
+  -p 3000:3000 \
+  -v lightfeed_db:/app/db \
+  -e NEXT_PUBLIC_LOGO_DEV_TOKEN=your_token_here \
+  lightfeed:latest
+```
+
+4. Open `http://localhost:3000`.
+
+Data survives container restarts because SQLite is stored in the `lightfeed_db` volume.
+
+### 2. Deploy on Vercel
+
+Important: Vercel Functions run with a read-only filesystem (except temporary `/tmp`), and Vercel's own guidance says SQLite is not supported in this model.
+
+That means the current SQLite-based version of LightFeed is **not** a production fit for Vercel as-is.
+
+Use one of these paths:
+
+- Path A: run LightFeed in Docker on a VM/container host (keep SQLite).
+- Path B: migrate LightFeed storage to Postgres (for example Supabase), then deploy app code to Vercel.
+
+If you choose Path B (Postgres migration), Vercel deployment steps are:
+
+1. Push repo to GitHub/GitLab/Bitbucket.
+2. Import project in Vercel.
+3. Ensure your Vercel Node.js runtime is `22+` (required by `node:sqlite` in this app).
+4. Add environment variables (for example `DATABASE_URL`, `NEXT_PUBLIC_LOGO_DEV_TOKEN`).
+5. Deploy.
+
+### 3. Use Supabase (managed Postgres)
+
+Supabase is the easiest managed Postgres option if you want cloud persistence and Vercel compatibility.
+
+Current status: this repository does **not** yet include a Postgres data layer; it uses SQLite APIs in `src/lib/*`.
+
+Migration guide:
+
+1. Create a Supabase project.
+2. In Supabase SQL Editor, run the schema from `db/schema.sql`.
+3. In Supabase dashboard, copy your Postgres connection string from **Connect**.
+4. Add `DATABASE_URL=...` to your app environment.
+5. Replace SQLite access code (`src/lib/sqlite.js`, `src/lib/lightfeed-db.js`, `src/lib/lightfeed-pages.js`, `src/lib/saved-articles-db.js`) with Postgres queries/client code.
+6. Deploy the app to Vercel or any Node host with `DATABASE_URL` set.
+
+Tip: for serverless runtimes, Supabase recommends pooler transaction mode connections.
+
+### 4. Other hosts (Railway, Fly.io, Render, VPS)
+
+Any host that can run a Next.js Node server works:
+
+```bash
+npm install
+npm run build
+npm run start
+```
+
+If you keep SQLite, make sure `db/` is on persistent storage.
+
+## Product model
+
+User-facing term: **Feed**  
+Storage term: **Page** (legacy internal naming in SQLite/lib functions)
+
+A feed/page contains:
+
+- `name`
+- `is_homepage`
+- many RSS sources (through `page_feeds`)
+
+## App routes
+
+- `/` - homepage/default feed stream
+- `/feeds` - feed directory
+- `/feeds/new` - create a feed
+- `/feeds/[id]` - read a feed stream
+- `/feeds/[id]/edit` - edit feed sources and settings
+- `/saved` - bookmarked articles
+- `/settings` - app settings (placeholder)
+
+## API routes
+
+- `GET /api/feeds` - list feeds
+- `POST /api/feeds` - create feed
+- `GET /api/feeds/[feedId]` - feed details + blended stream
+- `PATCH /api/feeds/[feedId]` - update feed
+- `DELETE /api/feeds/[feedId]` - delete feed
+- `POST /api/preview-feed` - preview feed blend before saving
+- `GET /api/saved-articles` - list saved articles
+- `POST /api/saved-articles` - save article
+- `DELETE /api/saved-articles` - remove saved article
+
+## Data storage
+
+SQLite file: `db/lightfeed.sqlite`
+
+Primary tables:
+
+- `pages(id, name, is_homepage, created_at)`
+- `feeds(id, url, title, created_at)`
+- `page_feeds(page_id, feed_id)`
+- `saved_articles(...)`
+
+The app stores configuration and saved metadata. RSS article content is fetched live.
+
+## Project structure
+
+- `src/app/*` - routes + server components
+- `src/components/*` - reusable UI/client components
+- `src/lib/lightfeed-pages.js` - feed/page operations
+- `src/lib/lightfeed-db.js` - SQLite schema, migration, seed flow
+- `src/lib/rss-parse.js` - RSS/Atom parsing
+- `src/lib/rss-blend.js` - recency-first blend logic
+- `src/lib/rss-stream.js` - fetch + orchestration
+- `src/lib/feed-request.js` - request feed validation
+- `src/lib/saved-articles-db.js` - bookmark persistence
+
+## Lightweight-by-default principles
+
+- Keep routes predictable
+- Keep API semantics aligned with UI language (`feeds`)
+- Avoid duplicated request validation logic
+- Avoid storing full article payloads when not needed
+
+## Troubleshooting
+
+- `Cannot find module 'node:sqlite'` or similar:
+  - upgrade Node.js to `22+`
+- App starts but no articles appear:
+  - verify feed URLs are valid RSS/Atom endpoints
+  - check per-feed warnings shown in the UI
+- Database reset for local development:
+  - stop server
+  - delete `db/lightfeed.sqlite`
+  - restart with `npm run dev`
+
+## Security note
+
+Feed URLs are user-provided and fetched server-side. If you deploy this publicly, add network controls/rules to prevent abuse (for example SSRF protections and outbound restrictions).
+
+## Contributing
+
+Contributions are welcome.
+
+Suggested workflow:
+
+1. Fork/branch from `main`
+2. Keep each update small and self-contained (one focused change per PR)
+3. Do not include scattered, unrelated edits across multiple random parts of the app
+4. Run `npm run lint` and make sure all lint checks pass
+5. Ensure accessibility checks pass at least AA with a minimum 3.5:1 visibility/contrast baseline for UI copy and text content
+6. Open a pull request with a clear description of what changed and why
+
+Accessibility reference:
+
+- W3C Web Accessibility Initiative (WAI): https://www.w3.org/WAI/
+- WCAG standards and guidance: https://www.w3.org/WAI/standards-guidelines/wcag/
+
+Maintainer policy:
+
+- The project owner may decline, ignore, or remove updates to keep the app clean and aligned with its mission.
+- Changes that move the app away from its mission will not be accepted.
+- If you want to take the app in a different direction, feel free to fork this repository and use it as a starting point/boilerplate.
+
+## License
+
+MIT. See [LICENSE](./LICENSE).
