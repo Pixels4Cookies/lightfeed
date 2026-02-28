@@ -56,7 +56,7 @@ cd rss-news
 npm install
 ```
 
-### 4. (Optional) Add `.env.local`
+### 4. Logo.dev Token (Optional) Add `.env.local` or set it in your production environment
 
 LightFeed uses [logo.dev](https://logo.dev/) to fetch publisher logos for news sources in article cards.
 
@@ -142,43 +142,7 @@ docker run -d \
 
 Data survives container restarts because SQLite is stored in the `lightfeed_db` volume.
 
-### 2. Deploy on Vercel
-
-Important: Vercel Functions run with a read-only filesystem (except temporary `/tmp`), and Vercel's own guidance says SQLite is not supported in this model.
-
-That means the current SQLite-based version of LightFeed is **not** a production fit for Vercel as-is.
-
-Use one of these paths:
-
-- Path A: run LightFeed in Docker on a VM/container host (keep SQLite).
-- Path B: migrate LightFeed storage to Postgres (for example Supabase), then deploy app code to Vercel.
-
-If you choose Path B (Postgres migration), Vercel deployment steps are:
-
-1. Push repo to GitHub/GitLab/Bitbucket.
-2. Import project in Vercel.
-3. Ensure your Vercel Node.js runtime is `22+` (required by `node:sqlite` in this app).
-4. Add environment variables (for example `DATABASE_URL`, `NEXT_PUBLIC_LOGO_DEV_TOKEN`).
-5. Deploy.
-
-### 3. Use Supabase (managed Postgres)
-
-Supabase is the easiest managed Postgres option if you want cloud persistence and Vercel compatibility.
-
-Current status: this repository does **not** yet include a Postgres data layer; it uses SQLite APIs in `src/lib/*`.
-
-Migration guide:
-
-1. Create a Supabase project.
-2. In Supabase SQL Editor, run the schema from `db/schema.sql`.
-3. In Supabase dashboard, copy your Postgres connection string from **Connect**.
-4. Add `DATABASE_URL=...` to your app environment.
-5. Replace SQLite access code (`src/lib/sqlite.js`, `src/lib/lightfeed-db.js`, `src/lib/lightfeed-pages.js`, `src/lib/saved-articles-db.js`) with Postgres queries/client code.
-6. Deploy the app to Vercel or any Node host with `DATABASE_URL` set.
-
-Tip: for serverless runtimes, Supabase recommends pooler transaction mode connections.
-
-### 4. Other hosts (Railway, Fly.io, Render, VPS)
+### 2. Other hosts (Railway, Fly.io, Render, VPS)
 
 Any host that can run a Next.js Node server works:
 
