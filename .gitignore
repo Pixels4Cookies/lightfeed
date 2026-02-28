@@ -10,6 +10,11 @@
 !.yarn/releases
 !.yarn/versions
 
+# agents
+.agents/
+/skills/
+.windsurfrules
+
 # testing
 /coverage
 
